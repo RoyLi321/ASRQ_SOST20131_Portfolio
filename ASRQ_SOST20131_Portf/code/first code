@@ -1,1 +1,85 @@
+setwd("~/Desktop/ProjectFolder")
+india.df <- read.csv("~/Desktop/ProjectFolder/cleanwithtranservfoodspendsall.csv")
+missing_values <- colSums(is.na(india.df))
+print(missing_values)
+colnames(india.df)
+
+str(india.df)
+
+summary(india.df)
+
+mean_bmi <- mean(india.df$a602, na.rm = TRUE)
+max_bmi <- max(india.df$a602, na.rm = TRUE)
+median_bmi <- median(india.df$a602, na.rm = TRUE)
+sd_bmi <- sd(india.df$a602)
+
+mean_bmi
+max_bmi
+median_bmi
+sd_bmi
+summary(india.df$a602)
+
+boxplot(india.df$a602 , xlab="sports fee" , ylab="expenditure",
+        main="sports expenditure" , horizontal=TRUE)
+india.df$socgroup<- as.factor(india.df$socgroup) #converted to factor
+boxplot(a602 ~ socgroup, data = india.df,
+        horizontal = TRUE,  
+        main = "Figure 1: Comparison of sports expenditure and social groups",
+        xlab = "sports fee/ rupees", 
+        ylab = "social group",
+        col = "lightblue",
+        border = "black")
+
+str(india.df$age)
+india.df$age <- as.numeric(as.character(india.df$age))
+str(india.df$age)
+summary(india.df$age)
+india.df$age_group <- cut(india.df$age, 
+                          breaks = c(-Inf, 20, 40, Inf), 
+                          labels = c("0-20", "21-40", "41+"))
+india.df$sports_category <- cut(india.df$a602, 
+                              breaks = c(-Inf, 100, 500, Inf), 
+                              labels = c("Low", "Medium", "High"))
+sum(is.na(india.df$sports_category))
+sum(is.na(india.df$age_group))
+clean_df <- india.df[!is.na(india.df$sports_category) & !is.na(india.df$age_group), ]
+library(gmodels)
+CrossTable(clean_df$age_group, clean_df$sports_category, prop.chisq = FALSE)
+
+
+
+cross_tab_freq <- table(clean_df$age_group, clean_df$sports_category)
+
+
+cross_tab_prop <- prop.table(cross_tab_freq)
+
+
+cross_tab_freq <- addmargins(cross_tab_freq)
+cross_tab_prop <- addmargins(cross_tab_prop)
+
+
+cross_tab_combined <- paste(cross_tab_freq, " (", round(cross_tab_prop * 100, 2), "%)", sep = "")
+
+
+cross_tab_matrix <- matrix(cross_tab_combined, 
+                           nrow = nrow(cross_tab_freq), 
+                           ncol = ncol(cross_tab_freq))
+
+
+cross_tab_df <- as.data.frame(cross_tab_matrix)
+
+
+colnames(cross_tab_df) <- c("Low", "Medium", "High", "Row Total")
+
+
+rownames(cross_tab_df) <- c("0-20", "21-40", "41+", "Column Total")
+
+
+library(DT)
+datatable(cross_tab_df, 
+          caption = htmltools::tags$caption(
+            style = 'caption-side: top; text-align: center;',
+            'sports category and age group'
+          ),
+          options = list(pageLength = 5, scrollX = TRUE))
 
